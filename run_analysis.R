@@ -1,11 +1,29 @@
-# Getting_and_Cleaning_Data
-Content created for the Johns Hopkins Data Science Specialization on Coursera  
+#Purpose: to clean, arrange and otherwisse prepare datasets for analysis,
+#based on instruction provided with the Coursera Course "Getting and Cleaning Data" Project
 
-##Summary of pertinent code from run_analysis.R file. Descriptions of functionality appear above the code chunks.
+#"You should create one R script called run_analysis.R that does the following:
+
+#1)Merges the training and the test sets to create one data set.
+#2)Extracts only the measurements on the mean and standard deviation for each measurement. 
+#3)Uses descriptive activity names to name the activities in the data set
+#4)Appropriately labels the data set with descriptive variable names. 
+#5)From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject."
 
 
-Read in the two sample groups (test and training), assign the desired column names, add a column to identify the subject, and then combine both dataframes for a complete dataset of all subjects and observations.
-```{r}
+#Created by: Kevin McCreery for a Coursera Course from Johns Hopikins, October 2015
+
+
+
+#setup, as needed.
+
+#Download of material required to recreate: https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+#set the working directory to my desired local file path
+#setwd("C:/Users/Kevin/Documents/R/Coursera Files/GettingCleaningData/UCI HAR Dataset/")
+library(dplyr)
+library(reshape2)
+#library(RMySQL)
+#library(DBI)
+
 #get the IDs of the subjects of the observations
 subtraining <- read.table("./train/subject_train.txt")
 #get the features for col names
@@ -27,12 +45,12 @@ ytest <- read.table("./test/y_test.txt")
 #col bind the subtraining as the row / subject ID col to the test data
 test2 <- cbind(subtesting, ytest, test)
 
+
 #Append the two data frames to have one df with all subjects and observations
 combined <- rbind(test2, train2)
-```
 
-Prepare to remove the desired columns (the subjectid, activityname, and all mean or std columns). This uses vectors with a length equal to the column dimension of the dataframe, and indexing, in order to accomplish the task.
-```{r}
+
+
 #Identify the columns that contain mean or std measurements, 
 #and create a combined logical vector with the desired columns.
 #Make sure I carry through the necessary first two columns (subject and activity), 
@@ -45,11 +63,8 @@ desiredcol <- as.vector(meancol + stdcol + idcol)
 
 #Get the desired columns out of the original dataset
 df_with_desiredcol <- combined[,which(as.logical(desiredcol))]
-```
 
 
-Replace the activity label integers with the desired human-readable text, and rename columns to fit standards.
-```{r}
 #Rplace all values of activity label with names
 temp <- df_with_desiredcol[,2]
 temp <- replace(temp, temp == 1, "walking")
@@ -68,10 +83,7 @@ colnames(df_with_desiredcol)[1] <- "SubjectID"
 colnames(df_with_desiredcol)[2] <- "ActivityName"
 colnames(df_with_desiredcol) <- tolower(colnames(df_with_desiredcol))
 
-```
 
-Finally, group, summarize and output the resulting data as specified in the course project instructions.
-```{r}
 #group and summarize into the intended wide format tidy output  for the dataframe
 grpd <- group_by(df_with_desiredcol, subjectid, activityname)
 widetidy <- summarise_each(grpd, funs(mean), -subjectid, -activityname)
@@ -79,4 +91,3 @@ widetidy <- summarise_each(grpd, funs(mean), -subjectid, -activityname)
 
 #then output the file with write file to a text file for upload
 write.table(widetidy, file = "KCM_ProjectOutput.txt",row.names = FALSE)
-```
